@@ -42,11 +42,13 @@ function getClickHandler() {
                         "<html>\n"+
                           "<head>\n"+
                             "<meta charset=\"utf-8\">\n"+
-                            "<title>Your Incredible Webpage created on Fri, 8 Aug, 2014 6:19 PM</title>\n"+
+                            "<title>Your Incredible Webpage created on " + Date.now() + "</title>\n"+
                           "</head>\n"+
-                          "<body>\n"+
-                            "<img src='"+ info.srcUrl +"'/>\n"+
-                            "<p>Make something amazing with the web</p>\n"+
+                          "<body style='background-color: rgb(243, 243, 243)'>\n"+
+                            "<div style='padding: 45px; margin: 0 auto; width: 940px; text-align: center;'>\n"+
+                              "<img src='"+ info.srcUrl +"' style='box-shadow: 5px 5px 5px rgba(136, 136, 136, 0.1); max-width: 500px;'/>\n"+
+                              "<p style='border-top: 2px dotted #3fb58e; border-bottom: 2px dotted #3fb58e; padding: 30px; width: 50%; margin: 30px auto; font-family: sans-serif; font-weight: bold;'>Make something amazing with the web.</p>\n"+
+                            "</div>\n"+
                           "</body>\n"+
                         "</html>\n";
         fs.writeFile(path + ".html", template, function(err) {
