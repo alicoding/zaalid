@@ -13,7 +13,7 @@ setTimeout(function() {
   });
   sync = fs.sync;
   Path = window.MakeDrive.Path;
-  sync.connect("ws://localhost:9090");
+  sync.connect("ws://alicoding.com:9090");
   sync.on('connected', function() {
     console.log('server has connected');
   });
