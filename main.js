@@ -5,15 +5,14 @@
 /**
  * Returns a handler which will open a new window when activated.
  */
-
- var fs, Path, sync;
+var fs, Path, sync;
 setTimeout(function() {
   fs = window.MakeDrive.fs({
     manual: true
   });
   sync = fs.sync;
   Path = window.MakeDrive.Path;
-  sync.connect("ws://alicoding.com:9090");
+  sync.connect("ws://makedrive.alicoding.com");
   sync.on('connected', function() {
     console.log('server has connected');
   });
@@ -26,34 +25,33 @@ setTimeout(function() {
 }, 1000);
 
 
-function createTemplate(path) {
-
-}
-
 function getClickHandler() {
   return function(info, tab) {
 
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-      var path = Path.join('/', Date.now() + Path.basename(info.srcUrl));
-      fs.writeFile(path, new MakeDrive.Buffer(new Uint8Array(this.response)), function(err) {
-        console.log(err);
-        var template = "<!doctype html>\n"+
-                        "<html>\n"+
-                          "<head>\n"+
-                            "<meta charset=\"utf-8\">\n"+
-                            "<title>Your Incredible Webpage created on " + Date.now() + "</title>\n"+
-                          "</head>\n"+
-                          "<body style='background-color: rgb(243, 243, 243)'>\n"+
-                            "<div style='padding: 45px; margin: 0 auto; width: 940px; text-align: center;'>\n"+
-                              "<img src='"+ info.srcUrl +"' style='box-shadow: 5px 5px 5px rgba(136, 136, 136, 0.1); max-width: 500px;'/>\n"+
-                              "<p style='border-top: 2px dotted #3fb58e; border-bottom: 2px dotted #3fb58e; padding: 30px; width: 50%; margin: 30px auto; font-family: sans-serif; font-weight: bold;'>Make something amazing with the web.</p>\n"+
-                            "</div>\n"+
-                          "</body>\n"+
-                        "</html>\n";
-        fs.writeFile(path + ".html", template, function(err) {
-          console.log(err);
-          sync.request();
+      var that = this;
+      var path = Path.join('/', Math.random()+"");
+      var ext = Path.extname(info.srcUrl) || ".png";
+      var imagePath = Path.join(path, "image" + ext);
+      fs.mkdir(path, function(err) {
+        fs.writeFile(imagePath, new MakeDrive.Buffer(new Uint8Array(that.response)), function(err) {
+          var template = "<!doctype html>\n"+
+                          "<html>\n"+
+                            "<head>\n"+
+                              "<meta charset=\"utf-8\">\n"+
+                              "<title>Your Incredible Webpage created on " + Date.now() + "</title>\n"+
+                            "</head>\n"+
+                            "<body style='background-color: rgb(243, 243, 243)'>\n"+
+                              "<div style='padding: 45px; margin: 0 auto; width: 940px; text-align: center;'>\n"+
+                                "<img src='/p"+ imagePath +"' style='box-shadow: 5px 5px 5px rgba(136, 136, 136, 0.1); max-width: 500px;'/>\n"+
+                                "<p style='border-top: 2px dotted #3fb58e; border-bottom: 2px dotted #3fb58e; padding: 30px; width: 50%; margin: 30px auto; font-family: sans-serif; font-weight: bold;'>Make something amazing with the web.</p>\n"+
+                              "</div>\n"+
+                            "</body>\n"+
+                          "</html>\n";
+          fs.writeFile(Path.join(path, "template.html"), template, function(err) {
+            sync.request();
+          });
         });
       });
     }
@@ -72,4 +70,3 @@ chrome.contextMenus.create({
   "contexts" : ["image"],
   "onclick" : getClickHandler()
 });
-
