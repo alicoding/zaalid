@@ -6,7 +6,8 @@
     "permissions": [
         "contextMenus",
         "downloads",
-        "<all_urls>"
+        "<all_urls>",
+        "storage"
      ],
     "background": {
       "scripts": ["main.js", "makedrive.js"]

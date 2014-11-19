@@ -5,23 +5,65 @@
 /**
  * Returns a handler which will open a new window when activated.
  */
-var fs, Path, sync;
+var fs, Path, sync, sh;
 setTimeout(function() {
   fs = window.MakeDrive.fs({
     manual: true
   });
+  sh = fs.Shell();
   sync = fs.sync;
   Path = window.MakeDrive.Path;
-  sync.connect("ws://makedrive.alicoding.com");
-  sync.on('connected', function() {
-    console.log('server has connected');
+  function getRandomToken() {
+      // E.g. 8 * 32 = 256 bits token
+      var randomPool = new Uint8Array(32);
+      crypto.getRandomValues(randomPool);
+      var hex = '';
+      for (var i = 0; i < randomPool.length; ++i) {
+          hex += randomPool[i].toString(16);
+      }
+      // E.g. db18458e2782b2b77e36769c569e263a53885a9944dd0a861e5064eac16f1a
+      return hex;
+  }
+
+  chrome.storage.sync.get('userid', function(items) {
+    var userid = items.userid;
+    if (userid) {
+      useToken(userid);
+    } else {
+      userid = getRandomToken();
+      chrome.storage.sync.set({userid: userid}, function() {
+        useToken(userid);
+      });
+    }
+    function useToken(userid) {
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        sync.connect("ws://localhost:9090", this.response.replace(/"/g, ""));
+        sync.on('connected', function() {
+          console.log('server has connected');
+        });
+        sync.on('completed', function() {
+          console.log('completed')
+        });
+        sync.on('error', function(e) {
+          if(e.code && e.message) {
+              e = 'Error code: ' + e.code + ' - ' + e.message;
+            } else if(e.stack) {
+              e = e.stack;
+            } else if(e.data) {
+              e = e.data;
+            } else if(e.error) {
+              e = e.error;
+            }
+          console.log(e);
+        });
+      }
+      xhr.open("GET", "http://localhost:9090/api/sync/");
+      xhr.responseType = "string";
+      xhr.send();
+    }
   });
-  sync.on('completed', function() {
-    console.log('completed')
-  });
-  sync.on('error', function(e) {
-    console.log(e);
-  });
+
 }, 1000);
 
 
@@ -31,10 +73,12 @@ function getClickHandler() {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
       var that = this;
-      var path = Path.join('/', Math.random()+"");
+      var promptPath = prompt();
+
+      var path = promptPath !== null ? Path.join('/', promptPath) : Path.join('/', Math.random()+"");
       var ext = Path.extname(info.srcUrl) || ".png";
       var imagePath = Path.join(path, "image" + ext);
-      fs.mkdir(path, function(err) {
+      sh.mkdirp(path, function(err) {
         fs.writeFile(imagePath, new MakeDrive.Buffer(new Uint8Array(that.response)), function(err) {
           var template = "<!doctype html>\n"+
                           "<html>\n"+
